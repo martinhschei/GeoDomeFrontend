@@ -6,6 +6,9 @@ import Router from './extensions/router/base';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import VueSwal from 'vue-swal';
+Vue.use(VueSwal);
+
 Vue.config.productionTip = false
 
 new Vue({

@@ -20,6 +20,10 @@ export default new Vuex.Store({
 	getters: {
 		userCoordinates(state) {
 			return state.userCoordinates;
+		},
+
+		domes(state) {
+			return state.domes;
 		}
 	},
 	actions: {},

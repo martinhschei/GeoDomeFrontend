@@ -1,13 +1,13 @@
 <template>
   <div v-cloak class="start-page">
     <div v-if="!hasUserCoordinates && askingForPermission">
-      <div class="mt-4 alert alert-success">
+      <div class="mt-4 alert alert-success text-center">
         Allow me to fetch your coordinates to use this app.
       </div>
     </div>
-    <div>
+    <div v-if="hasUserCoordinates">
       <div id="map" class="mt-4 mx-auto shadow-lg rounded"></div>
-      <div class="text-left mt-4 current-coordinates">
+      <div class="text-center mt-4 current-coordinates">
         <small class="text-muted">
           {{ userCoordinates.lat }} /
           {{ userCoordinates.lng }}
@@ -47,7 +47,7 @@ export default {
   },
 
   mounted() {
-    this.fetchPosition();
+    this.fetchPosition(this.onPositionFetched);
   },
 
   computed: {
@@ -74,47 +74,52 @@ export default {
 
     addMarker(coords, zoom) {
       this.markersLayer.clearLayers();
-
-      if (coords.lat && coords.lng) {
-        this.marker = L.marker([coords.lat, coords.lng]).addTo(
-          this.markersLayer
-        );
-        this.updateMapPosition(
-          {
-            lat: coords.lat,
-            lng: coords.lng,
-          },
-          zoom
-        );
-      } else {
-        this.marker = L.marker(coords.latlng).addTo(this.markersLayer);
-        this.updateMapPosition(
-          {
-            lat: coords.latlng.lat,
-            lng: coords.latlng.lng,
-          },
-          zoom
-        );
-      }
+      this.marker = L.marker([coords.lat, coords.lng]).addTo(this.markersLayer);
+      this.updateMapPosition(
+        {
+          lat: coords.lat,
+          lng: coords.lng,
+        },
+        zoom
+      );
     },
 
-    fetchDomesNearBy(lat, lng) {
+    fetchDomesNearBy({ lat, lng }) {
       fetch(`/api/domes/near-me?latitude=${lat}&longitude=${lng}`).then(
         async (response) => {
           this.$store.commit("domes", await response.json());
+          this.addDomesToMap();
         }
       );
     },
 
-    fetchPosition() {
+    onPositionFetched(position) {
+      this.$store.commit("setUserCoordinates", position.coords);
+      setTimeout(() => {
+        this.loadMap("map");
+        this.addMarker(this.userCoordinates, 17);
+        this.fetchDomesNearBy(this.userCoordinates);
+      }, 500);
+    },
+
+    addDomesToMap() {
+      this.$store.getters.domes.forEach((dome) => {
+        L.circle([dome.latitude, dome.longitude], {
+          stroke: false,
+          color: dome.color,
+          radius: dome.radius,
+        }).addTo(this.map);
+      });
+    },
+
+    fetchPosition(callback) {
       this.fetchingPosition = false;
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
           this.fetchingPosition = false;
           this.askingForPermission = false;
-          this.$store.commit("setUserCoordinates", position.coords);
-          this.loadMap("map");
+          callback(position);
         },
         () => {
           this.userHasDeclined = true;
@@ -157,7 +162,7 @@ export default {
 
 <style scoped>
 #map {
-  width: 100%;
-  height: 350px;
+  width: 85%;
+  height: 400px;
 }
 </style>
