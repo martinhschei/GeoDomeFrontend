@@ -5,12 +5,12 @@
         Allow me to fetch your coordinates to use this app.
       </div>
     </div>
-    <div v-if="hasUserCoordinates">
+    <div>
       <div id="map" class="mt-4 mx-auto shadow-lg rounded"></div>
       <div class="text-left mt-4 current-coordinates">
         <small class="text-muted">
-          {{ userCoordinates.latitude }} /
-          {{ userCoordinates.longitude }}
+          {{ userCoordinates.lat }} /
+          {{ userCoordinates.lng }}
         </small>
       </div>
       <hr />
@@ -40,7 +40,6 @@ export default {
       marker: null,
       fetching: false,
       markersLayer: null,
-      userCoordinates: null,
       userHasDeclined: false,
       fetchingPosition: true,
       askingForPermission: true,
@@ -49,26 +48,18 @@ export default {
 
   mounted() {
     this.fetchPosition();
-
-    setTimeout(() => {
-      this.loadMap("map");
-    }, 500);
-
-    setTimeout(() => {
-      this.fetchDomesNearBy();
-    }, 500);
   },
 
   computed: {
     hasUserCoordinates() {
-      return this.userCoordinates != null;
+      return this.$store.getters.userCoordinates != null;
     },
 
-    coordinates() {
+    userCoordinates() {
       if (this.hasUserCoordinates) {
         return {
-          lat: this.userCoordinates.latitude,
-          lng: this.userCoordinates.longitude,
+          lat: this.$store.getters.userCoordinates.latitude,
+          lng: this.$store.getters.userCoordinates.longitude,
         };
       }
 
@@ -107,19 +98,12 @@ export default {
       }
     },
 
-    fetchDomesNearBy() {
-      fetch(
-        `/api/domes/near-me?latitude=${this.userCoordinates.latitude}&longitude=${this.userCoordinates.longitude}`
-      ).then(async (response) => {
-        this.domes = await response.json();
-        this.addMarker(
-          {
-            lat: this.userCoordinates.latitude,
-            lng: this.userCoordinates.longitude,
-          },
-          16
-        );
-      });
+    fetchDomesNearBy(lat, lng) {
+      fetch(`/api/domes/near-me?latitude=${lat}&longitude=${lng}`).then(
+        async (response) => {
+          this.$store.commit("domes", await response.json());
+        }
+      );
     },
 
     fetchPosition() {
@@ -129,7 +113,8 @@ export default {
         (position) => {
           this.fetchingPosition = false;
           this.askingForPermission = false;
-          this.userCoordinates = position.coords;
+          this.$store.commit("setUserCoordinates", position.coords);
+          this.loadMap("map");
         },
         () => {
           this.userHasDeclined = true;

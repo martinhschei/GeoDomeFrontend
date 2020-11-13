@@ -4,8 +4,23 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-	state: [],
+	state: {
+		domes: [],
+		userCoordinates: null,
+	},
+	mutations: {
+		domes(state, value) {
+			state.domes = value;
+		},
+		setUserCoordinates(state, value) {
+			state.userCoordinates = value;
+		}
+	},
 	modules: {},
-	getters: {},
+	getters: {
+		userCoordinates(state) {
+			return state.userCoordinates;
+		}
+	},
 	actions: {},
 });
