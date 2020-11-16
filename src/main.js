@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import App from './App.vue';
 
+import './extensions/filters';
 import Store from './extensions/store/base';
 import Router from './extensions/router/base';
 

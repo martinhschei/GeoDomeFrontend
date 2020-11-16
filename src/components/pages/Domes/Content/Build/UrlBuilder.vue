@@ -6,14 +6,18 @@
       v-model="form.url"
       placeholder="Type the url"
     />
-    <button class="btn btn-sm btn-success" @click.prevent="contentReady">
+    <button class="btn btn-sm btn-success" @click.prevent="contentReady()">
       Save
     </button>
   </div>
 </template>
 
 <script>
+import ContentBuilder from "../../../../../mixins/ContentBuilder";
+
 export default {
+  mixins: [ContentBuilder],
+
   data() {
     return {
       form: {
@@ -30,7 +34,12 @@ export default {
 
   methods: {
     contentReady() {
-      this.$emit("contentReady", this.form.url);
+      this.saveContent({
+        name: "Url",
+        content: {
+          url: this.form.url,
+        },
+      });
     },
   },
 };

@@ -26,6 +26,10 @@ export class Form {
 		}
 	}
 
+	addField(name, value) {
+		this.fields[name] = value;
+	}
+
 	get hasErrors() {
 		return this.errors != null;
 	}

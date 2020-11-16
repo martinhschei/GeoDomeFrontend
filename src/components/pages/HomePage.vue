@@ -1,6 +1,6 @@
 <template>
   <div v-cloak class="start-page">
-    <div v-if="!hasUserCoordinates && askingForPermission">
+    <div v-if="!hasUserCoordinates && askingForPermission && !fetchingPosition">
       <div class="mt-4 alert alert-success text-center">
         Allow me to fetch your coordinates to use this app.
       </div>
@@ -14,7 +14,12 @@
         </small>
       </div>
       <hr />
-      <div class="text-right">
+      <DomeList
+        :domes="domes"
+        @domeSelected="onDomeSelected"
+        v-if="domes.length > 0"
+      />
+      <div class="text-right mt-2">
         <router-link to="/create-dome" class="btn btn-success">
           <i class="fas fa-plus-circle"></i> Create new dome at my location
         </router-link>
@@ -32,11 +37,15 @@
 
 <script>
 var L = require("leaflet");
+import DomeList from "./DomeList";
 
 export default {
+  components: {
+    DomeList,
+  },
+
   data() {
     return {
-      domes: [],
       marker: null,
       fetching: false,
       markersLayer: null,
@@ -51,6 +60,10 @@ export default {
   },
 
   computed: {
+    domes() {
+      return this.$store.getters.domes;
+    },
+
     hasUserCoordinates() {
       return this.$store.getters.userCoordinates != null;
     },
@@ -85,12 +98,18 @@ export default {
     },
 
     fetchDomesNearBy({ lat, lng }) {
-      fetch(`/api/domes/near-me?latitude=${lat}&longitude=${lng}`).then(
-        async (response) => {
+      fetch(`/api/domes/near-me?latitude=${lat}&longitude=${lng}`)
+        .then(async (response) => {
           this.$store.commit("domes", await response.json());
           this.addDomesToMap();
-        }
-      );
+        })
+        .catch(() => {
+          this.$swal(
+            "Ops!",
+            "Something prevents me from fetching domes near you. Try to refresh the page.",
+            "warning"
+          );
+        });
     },
 
     onPositionFetched(position) {
@@ -108,8 +127,16 @@ export default {
           stroke: false,
           color: dome.color,
           radius: dome.radius,
-        }).addTo(this.map);
+        })
+          .addTo(this.map)
+          .on("click", () => {
+            this.onDomeSelected(dome);
+          });
       });
+    },
+
+    onDomeSelected(dome) {
+      console.log(dome);
     },
 
     fetchPosition(callback) {
@@ -162,7 +189,7 @@ export default {
 
 <style scoped>
 #map {
-  width: 85%;
-  height: 400px;
+  width: 100%;
+  height: 300px;
 }
 </style>

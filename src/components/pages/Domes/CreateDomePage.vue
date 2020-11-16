@@ -1,5 +1,5 @@
 <template>
-  <div class="create-dome">
+  <div v-cloak class="create-dome">
     <div class="create-dome-wizard">
       <form-wizard
         :shape="shape"
@@ -72,6 +72,15 @@
                   name="content"
                   v-model="form.fields.componentName"
                 />Files - upload/download files
+              </li>
+              <li class="list-group-item">
+                <input
+                  type="radio"
+                  class="mr-2"
+                  value="Checkin"
+                  name="content"
+                  v-model="form.fields.componentName"
+                />Checkin - checkin to event
               </li>
             </ul>
             <div v-if="contentComponent">
@@ -152,8 +161,15 @@ export default {
       this.submit();
     },
 
-    onContentReady(content) {
-      this.form.fields.componentContent = content;
+    onContentReady(payload) {
+      new Form({
+        name: payload.name,
+        content: JSON.stringify(payload.content),
+      })
+        .json("/api/domecontent")
+        .then((result) => {
+          this.form.addField("DomeContentID", result.data.id);
+        });
     },
 
     submit() {
