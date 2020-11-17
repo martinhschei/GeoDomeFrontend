@@ -3,16 +3,15 @@
     <input
       type="text"
       class="form-control mb-2"
-      v-model="form.url"
+      v-model="form.fields.path"
       placeholder="Type the url"
     />
-    <button class="btn btn-sm btn-success" @click.prevent="contentReady()">
-      Save
-    </button>
+    <button class="btn btn-sm btn-success" @click.prevent="save">Save</button>
   </div>
 </template>
 
 <script>
+import { Form } from "../../../../../extensions/form";
 import ContentBuilder from "../../../../../mixins/ContentBuilder";
 
 export default {
@@ -20,25 +19,23 @@ export default {
 
   data() {
     return {
-      form: {
-        url: "",
-      },
+      form: new Form({
+        path: "",
+      }),
     };
   },
 
-  computed: {
-    contentForm() {
-      return this.contentForm;
-    },
-  },
-
   methods: {
-    contentReady() {
-      this.saveContent({
-        name: "Url",
-        content: {
-          url: this.form.url,
-        },
+    save() {
+      this.form.json("/api/url").then((result) => {
+        if (result.success) {
+          this.form = new Form(result.data);
+          this.$swal("Created!", "Url is saved!", "success");
+          this.createDomeContent({
+            name: "Url",
+            id: result.data.id,
+          });
+        }
       });
     },
   },

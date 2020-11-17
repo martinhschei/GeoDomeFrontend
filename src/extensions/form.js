@@ -38,7 +38,11 @@ export class Form {
 		this.busy = true;
 
 		return new Promise((resolve, reject) => {
-			return axios.post(url, this.fields)
+			return axios({
+				url: url,
+				data: this.fields,
+				method: this.fields.id ? "PUT" : "POST",
+			})
 				.then((result) => {
 					resolve(result.data);
 				})

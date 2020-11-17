@@ -117,6 +117,7 @@ import VSwatches from "vue-swatches";
 import "vue-swatches/dist/vue-swatches.css";
 import { Form } from "./../../../extensions/form";
 import UrlBuilder from "./Content/Build/UrlBuilder";
+import QuizBuilder from "./Content/Build/QuizBuilder";
 import "vue-form-wizard/dist/vue-form-wizard.min.css";
 import { FormWizard, TabContent } from "vue-form-wizard";
 
@@ -126,6 +127,7 @@ export default {
     FormWizard,
     TabContent,
     Url: UrlBuilder,
+    Quiz: QuizBuilder,
   },
 
   data() {
@@ -162,14 +164,7 @@ export default {
     },
 
     onContentReady(payload) {
-      new Form({
-        name: payload.name,
-        content: JSON.stringify(payload.content),
-      })
-        .json("/api/domecontent")
-        .then((result) => {
-          this.form.addField("DomeContentID", result.data.id);
-        });
+      this.form.addField("DomeContentID", payload.id);
     },
 
     submit() {
